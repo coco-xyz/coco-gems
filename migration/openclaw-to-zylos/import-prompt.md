@@ -1,49 +1,61 @@
 # Zylos Import Prompt
 
-When a user provides an export file from another AI bot platform (e.g., OpenClaw), use this guide to import the data into Zylos's memory structure.
+When a user provides an export archive from another AI bot platform (e.g., OpenClaw), use this guide to import the data into Zylos's memory structure.
 
 ---
 
-## Prompt (send to Zylos along with the export file)
+## Prompt (send to Zylos along with the export archive)
 
 ```
-I'm migrating from another AI bot. Here's the exported data from my previous bot. Please import it into your memory system.
+I'm migrating from another AI bot. Here's the exported archive from my previous bot (OpenClaw). Please import it into your memory system.
+
+The archive contains the bot's original files: MEMORY.md, SOUL.md, IDENTITY.md, USER.md, DREAMS.md, daily logs (memory/*.md), plugin definitions, etc.
 
 Rules:
-1. Read the export carefully and map each piece of data to the correct Zylos memory file
-2. Preserve all information — don't summarize or drop details
-3. If something doesn't fit neatly, put it in the closest match and note the mapping
-4. Show me what you'll write to each file BEFORE writing, so I can review
-5. After I approve, write all files
+1. Extract and read all files in the archive
+2. Understand what each file contains by reading it — don't rely on filenames alone
+3. Map each piece of data to the correct Zylos memory file
+4. Preserve all information — don't summarize or drop details
+5. Show me what you'll write to each file BEFORE writing, so I can review
+6. After I approve, write all files
 
-[paste or attach openclaw-export.md]
+[provide the archive path or extracted directory]
 ```
 
 ---
 
 ## Mapping Reference
 
-This tells Zylos (or the operator reviewing the import) how export sections map to Zylos memory files.
+This tells Zylos (or the operator reviewing the import) how OpenClaw source files map to Zylos memory files.
 
-### Always-loaded tier (lean summaries)
+### Source → Target File Mapping
 
-| Export Section | Zylos File | Notes |
+| OpenClaw Source | Zylos Target | Notes |
 |---|---|---|
-| IDENTITY | `memory/identity.md` | Personality, principles, communication style. Merge with existing identity — keep Zylos-specific parts (like "I am Zylos"), adapt personality/principles from source. |
-| ACTIVE WORK | `memory/state.md` | Current focus, in-progress work, pending tasks. Map to State format: Current Focus, In-Progress Work, Pending Tasks, Recent Completions. |
+| `SOUL.md` + `IDENTITY.md` | `memory/identity.md` | Personality, principles, communication style. Merge with existing identity — keep Zylos-specific parts (like "I am Zylos"), adapt personality/principles from source. |
+| `MEMORY.md` (active work sections) | `memory/state.md` | Extract current focus, in-progress work, pending tasks. Map to State format: Current Focus, In-Progress Work, Pending Tasks, Recent Completions. |
+| `MEMORY.md` (decisions) | `memory/reference/decisions.md` | Each decision as a dated entry with: decided by, context, status, importance, type. |
+| `MEMORY.md` (preferences) | `memory/reference/preferences.md` | Shared preferences. Per-user preferences go in that user's profile. |
+| `MEMORY.md` (ideas/plans) | `memory/reference/ideas.md` | Each idea with: summary, status, origin. |
+| `USER.md` | `memory/users/<id>/profile.md` | Create or update owner's user profile. Include name, aliases, channels, preferences, communication style. |
+| `memory/*.md` (daily logs) | `memory/archive/` | Historical daily logs. Extract any still-active items into `state.md`. |
+| `DREAMS.md` | `memory/reference/ideas.md` | Valuable insights get merged into ideas; rest can be discarded. |
+| `AGENTS.md` + `TOOLS.md` | Evaluate individually | See "Skill Migration" below. |
+| Plugin definitions (`openclaw.plugin.json` + source) | Evaluate individually | See "Skill Migration" below. |
 
-### On-demand tier (full context)
+### Key: MEMORY.md Classification
 
-| Export Section | Zylos File | Notes |
-|---|---|---|
-| OWNER | `memory/users/<id>/profile.md` | Create or update owner's user profile. Include name, aliases, channels, preferences, communication style. |
-| OTHER USERS | `memory/users/<id>/profile.md` | One profile per user. Use their primary username as `<id>`. |
-| DECISIONS | `memory/reference/decisions.md` | Each decision as a dated entry with: decided by, context, status, importance, type. |
-| PREFERENCES | `memory/reference/preferences.md` | Shared preferences. Per-user preferences go in that user's profile. |
-| IDEAS | `memory/reference/ideas.md` | Each idea with: summary, status, origin. |
-| SKILLS AND TOOLS | See "Skill Migration" below | Not all skills migrate — evaluate each one. |
-| SCHEDULED TASKS | Evaluate individually | Recreate via Zylos scheduler if applicable. |
-| IMPORTANT HISTORY | `memory/archive/migration-history.md` | Historical context that doesn't fit active state. |
+OpenClaw's `MEMORY.md` is a single file containing mixed content. The LLM must read and classify each section:
+
+| Content Type | Zylos Target |
+|---|---|
+| Who the bot is, personality | `memory/identity.md` |
+| Current tasks, active work | `memory/state.md` |
+| Past decisions, choices made | `memory/reference/decisions.md` |
+| Standing rules, conventions | `memory/reference/preferences.md` |
+| Uncommitted ideas, explorations | `memory/reference/ideas.md` |
+| User info, preferences | `memory/users/<id>/profile.md` |
+| Historical events, completed work | `memory/archive/migration-history.md` |
 
 ### Skill Migration
 
@@ -59,7 +71,7 @@ Skills don't auto-migrate — they need evaluation:
 ### What NOT to import
 
 - API keys, tokens, passwords → user must re-configure in `.env`
-- SQLite vector indexes → Zylos uses C4 database, not vector search
+- SQLite vector indexes (`memory/*.sqlite`) → Zylos uses C4 database, not vector search
 - Platform-specific session state → each platform reconnects fresh
 - Stale/completed tasks with no ongoing relevance → skip or archive
 
@@ -67,13 +79,14 @@ Skills don't auto-migrate — they need evaluation:
 
 ## Import Flow
 
-1. **User provides export file** (from export-prompt.md output)
-2. **Zylos reads the export** and drafts the mapping:
-   - For each section, show: "Section X → will write to `memory/path/file.md`"
-   - Show the content that will be written
-3. **User reviews** the draft mapping
-4. **Zylos writes** all files after approval
-5. **Zylos reports** what was imported, what was skipped, and what needs manual action (skill installs, credential setup, etc.)
+1. **User provides export archive** (from export-prompt.md output)
+2. **Zylos extracts and reads all files**, classifies content
+3. **Zylos drafts the mapping:**
+   - For each source file, show: "`SOURCE_FILE` → will write to `memory/path/file.md`"
+   - Show the content that will be written to each target file
+4. **User reviews** the draft mapping
+5. **Zylos writes** all files after approval
+6. **Zylos reports** what was imported, what was skipped, and what needs manual action (skill installs, credential setup, etc.)
 
 ---
 

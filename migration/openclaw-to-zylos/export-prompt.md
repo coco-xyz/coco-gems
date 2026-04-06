@@ -1,61 +1,43 @@
 # OpenClaw Export Prompt
 
-Copy the prompt below and send it to your OpenClaw bot. It will output a structured export of all its memory, skills, and configuration.
+Copy the prompt below and send it to your OpenClaw bot. It will package all its memory and configuration files into a compressed archive for migration.
 
 ---
 
 ## Prompt
 
 ```
-I'm migrating you to a new platform. Please export ALL your persistent data in the following structured format. Include everything — don't summarize or omit.
+I'm migrating you to a new platform. Please package ALL your persistent data files into a compressed archive (.tar.gz or .zip).
 
-Output a single Markdown document with these exact sections:
+Include these files and directories:
 
-## IDENTITY
-Everything about who you are: name, personality, principles, communication style, tone. Include your full SOUL.md and IDENTITY.md content.
+1. Root-level memory files:
+   - MEMORY.md (long-term memory)
+   - SOUL.md (identity/soul)
+   - IDENTITY.md (identity)
+   - USER.md (user info)
+   - DREAMS.md (if exists)
+   - AGENTS.md (if exists)
+   - TOOLS.md (if exists)
 
-## OWNER
-Who is your owner/primary user? Include: name, aliases, contact info, platform IDs, preferences, communication style, any special instructions.
+2. Daily logs:
+   - memory/*.md (all daily log files, e.g. memory/2026-04-01.md)
 
-## OTHER USERS
-If you serve multiple users, list each one with their: name, aliases, platform IDs, preferences, relationship to you.
+3. Plugin/skill definitions:
+   - All openclaw.plugin.json files and their associated source files
 
-## ACTIVE WORK
-What are you currently working on? List every in-progress task, pending item, and ongoing project with full context — what it is, current status, what's next, who requested it, any blockers.
+4. Configuration:
+   - Any non-sensitive config files (NOT .env, NOT files containing API keys/tokens)
 
-## DECISIONS
-Key decisions that have been made during your operation. For each: what was decided, when, by whom, why, and whether it's still active.
+Package everything into a single archive and provide it for download. Preserve the directory structure.
 
-## PREFERENCES
-Standing instructions for how things should be done — coding style, communication rules, workflow conventions, platform-specific behaviors. Both shared and per-user.
-
-## IDEAS
-Uncommitted plans, explorations, things discussed but not started yet.
-
-## SKILLS AND TOOLS
-List every skill, plugin, tool, or automation you have. For each:
-- Name and purpose
-- How it's triggered (command, event, schedule)
-- Key configuration (non-sensitive)
-- Dependencies
-
-## SCHEDULED TASKS
-Any recurring or scheduled jobs. For each: what it does, schedule/interval, last run, status.
-
-## IMPORTANT HISTORY
-Key events, milestones, or context from your history that would be lost if not carried over. Include recent significant conversations or decisions.
-
-Format rules:
-- Use Markdown throughout
-- Be exhaustive — anything you don't export will be lost
-- For each section, if you have nothing, write "(empty)"
-- Output everything in a single response, no follow-up needed
+If you cannot create an archive directly, list every file path that contains persistent data so I can collect them manually.
 ```
 
 ---
 
 ## After Export
 
-1. Copy the bot's full response
-2. Save it as `openclaw-export.md`
-3. Give this file to your Zylos instance for import (see import instructions)
+1. Download the archive from your OpenClaw bot
+2. Extract it to verify contents
+3. Give the archive (or extracted directory) to your Zylos instance for import (see import-prompt.md)
